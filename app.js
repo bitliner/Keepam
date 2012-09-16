@@ -53,9 +53,9 @@ app.get('/', function(req,res){res.render('index',{})});
 app.get('/logout',function(req,res){delete req.session.user; res.redirect('/')})
 
 fauthentication.settings({
-    client_id: '194622933989729',
-    client_secret: '44db9515168f6c2d3ba9f7689a65d47e',
-    redirect_uri: 'http://localhost:3000/fauthentication/getAccessToken',
+    client_id: '261579527295624',
+    client_secret: '1527d351ecc5a389bde59124a8e5f38a',
+    redirect_uri: 'http://keepam.cloudfoundry.com/fauthentication/getAccessToken',
     app: app,
     callback: function(req,res,next,accessToken,user){
         req.session.user=user 
@@ -74,7 +74,7 @@ var checkAuthentication=function(req,res,next){
 app.get('/fauthentication/authenticate',fauthentication.auth)
 app.get('/subscribe',checkAuthentication,function(req,res){ res.render('subscribe',{}) })
 
-app.listen(3000, function(){
+app.listen(process.env.VMC_APP_PORT || 3000, function(){
     console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 });
 
