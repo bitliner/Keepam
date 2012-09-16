@@ -1,0 +1,139 @@
+extends ./layout
+
+
+block script
+	script(src='/js/jquery.js')
+	script(src='/css/bootstrap/js/bootstrap.min.js')
+	script(src='/js/underscore-min.js')
+	script(src='/js/backbone-min.js')
+
+block content
+	script 
+		var username='#{session.user.username}'
+		var Course=Backbone.Model.extend({
+			urlRoot: '/api/course/',
+			idAttribute: '_id'
+			})
+		var CourseView=Backbone.View.extend({
+			initialize: function(){
+				this.model.on('change',this._renderSubscriptions,this)
+				this.saveOpts={success:function(a,b){console.log(a,b);},error:function(a,b){console.log(a,b);}}
+			},
+			events: {
+				'click label input':'subscribe'
+			},
+			_renderSubscriptions: function(){
+				var subscriptions=this.model.get('subscriptions')
+				,	T=this
+				this.$('.subscriptions').empty()
+				if (subscriptions.length){
+					_.forEach(subscriptions,function(s){
+						var sub=_.template( $('#subscription').html(), {'username':s} );
+						T.$('.subscriptions').append(sub)
+					})	
+				}else{
+					T.$('.subscriptions').append( $('<p style="margin:10px;">').append('Nobody for this exam!') )
+				}
+				return this
+				},
+			_renderCheckbox: function(){
+				var subscriptions=this.model.get('subscriptions'),
+					checkbox
+				$(this.el).empty().append( _.template( $('#course').html(),{
+					_id: this.model.get('_id'),
+					name: this.model.get('name'),
+				} ) )
+				checkbox=this.$('input[type=checkbox]')
+				if (subscriptions.indexOf(username)!=-1){
+					checkbox.attr('checked','checked')
+				}
+				return this
+			},
+			render:function(){
+				this._renderCheckbox()
+				this._renderSubscriptions()
+				return this				
+			},
+			subscribe: function(e){
+				var	oldArray=this.model.get('subscriptions')
+				,	pos=oldArray.indexOf(username)
+				console.log('pos',pos);
+				if (pos==-1 ){
+					oldArray.push(username)
+					this.model.save({subscriptions: oldArray },this.saveOpts)
+				}else{
+					oldArray.splice(pos,1)
+					this.model.save({subscriptions: oldArray },this.saveOpts)
+				}
+			}
+		})
+		var CoursesView=Backbone.View.extend({
+			initialize: function(){
+				this.collection.on('reset',this.render,this)
+			},
+			render: function(){
+				$(this.el).empty();
+				var T=this
+				this.collection.forEach(function(course){
+					var c=new CourseView({
+						model: course
+						}).render()
+					$(T.el).append(c.el)
+					})
+				return this
+			}
+			})
+		var Courses=Backbone.Collection.extend({
+			model: Course,
+			url:'/api/course/',
+			comparator: function(){ return this.get('name') }
+			})
+		
+		$(document).ready(function(){
+			var cs=new Courses()
+			var csv=new CoursesView({
+				collection: cs,
+				el: $('#courses')
+				})
+			cs.fetch({
+				success: function(a,b,c){
+					console.log('succ',a,b,c);
+				},
+				error: function(a,b){console.log('err',a,b);}
+			})
+
+		})
+
+
+
+	script(type='text/html',id='course')
+		.row
+			.span4
+				label.check-box 
+					input(style='float:left;margin-right:10px;',type='checkbox',value!='<%= _id %>') 
+					| <%= name %> 
+			.span2
+				a.icon-user(style='cursor:pointer;',data-toggle='collapse',data-target!='#sub<%= _id %>')
+		.row.collapse(id!='sub<%= _id %>')
+			.span6.subscriptions
+
+
+	script(type='text/html',id='subscription')	
+		.row-fluid(style='margin:10px;')
+			.span1
+				a(href!='https://www.facebook.com/<%= username %>',target='_blank',title!='<%= username %>')
+					img(style='float:left;',src!='https://graph.facebook.com/<%= username %>/picture')
+			.span3
+				a(href!='https://www.facebook.com/<%= username %>',target='_blank',title!='<%= username %>') <%= username %>
+
+	.container
+		.navbar
+			.navbar.inner
+				ul.nav(style='float:right;')
+					li 
+						a(href='/logout') Logout
+		.row
+			.span6.offset3(style='margin-top:30px;')
+				h1 Keepam
+				.row(style='margin-top:30px;')
+					.span6#courses(style='')

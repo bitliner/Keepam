@@ -1,0 +1,22 @@
+extends ./layout
+
+block meta
+	title Keepam - Keep calm and study for the exams
+block script
+	script 	
+		var login=function(){
+			window.open('/fauthentication/authenticate?next=/subscribe', 'Facebook Login', 'width=300px, height=300');
+		}
+
+
+block content
+	div.container
+		.row
+			.span6.offset3
+				div.hero-unit(style='margin-top:30px;')
+					h1 Keepam
+					p 
+					p Keep calm and meet for the exams!
+					p Mettiti in contatto con gli studenti che stanno preparando i tuoi stessi esami. 
+					p
+						a.btn.btn-primary.btn-large(onclick="login()") Login
