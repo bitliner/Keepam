@@ -53,9 +53,9 @@ app.get('/', function(req,res){res.render('index',{})});
 app.get('/logout',function(req,res){delete req.session.user; res.redirect('/')})
 
 fauthentication.settings({
-    client_id: '261579527295624',
-    client_secret: '1527d351ecc5a389bde59124a8e5f38a',
-    redirect_uri: 'http://keepam.cloudfoundry.com/fauthentication/getAccessToken',
+    client_id: process.env.fbAppId||'194622933989729',
+    client_secret: process.env.fbAppSecret||'44db9515168f6c2d3ba9f7689a65d47e',
+    redirect_uri: (process.env.fbAppId)?'http://keepam.cloudfoundry.com/fauthentication/getAccessToken':'http://localhost:3000/fauthentication/getAccessToken',
     app: app,
     callback: function(req,res,next,accessToken,user){
         req.session.user=user 
